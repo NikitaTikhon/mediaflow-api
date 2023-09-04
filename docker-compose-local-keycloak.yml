@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  mediaflow-local-keycloak:
+    image: quay.io/keycloak/keycloak:21.1.2
+    container_name: mediaflow-local-keycloak
+    command: [ "start-dev", "--import-realm" ]
+    environment:
+      KC_DB_USERNAME: ${DB_USERNAME}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak-local-data:/opt/keycloak/data/
+      - ./imports/realm/:/opt/keycloak/data/import/
+
+volumes:
+  keycloak-local-data:
+    name: keycloak-local-data

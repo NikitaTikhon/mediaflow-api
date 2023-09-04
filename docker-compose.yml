@@ -1,0 +1,70 @@
+version: '3.9'
+
+services:
+  mediaflow-api:
+    image: 'mediaflow-api:1.0.0'
+    restart: always
+    build:
+      context: .
+    container_name: mediaflow-api
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    depends_on:
+      mediaflow-keycloak:
+        condition: service_started
+      mediaflow-db:
+        condition: service_started
+
+  mediaflow-db:
+    image: 'postgres:15.1-alpine'
+    container_name: mediaflow-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=mediaflow
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - mediaflow-db-data:/var/lib/postgresql/data
+
+  mediaflow-pgAdmin4:
+    container_name: mediaflow-pgAdmin4
+    image: dpage/pgadmin4:7.4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+
+  mediaflow-keycloak:
+    image: quay.io/keycloak/keycloak:21.1.2
+    container_name: mediaflow-keycloak
+    command: [ "start-dev", "--import-realm" ]
+    environment:
+# postgres
+#      KC_DB: postgres
+#      KC_DB_URL: ${DOCKER_DB_URL}
+      KC_DB_USERNAME: ${DB_USERNAME}
+      KC_DB_PASSWORD: ${DB_PASSWORD}
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - keycloak-data:/opt/keycloak/data/
+      - ./imports/realm/:/opt/keycloak/data/import/
+# postgres
+#    depends_on:
+#      - mediaflow-db
+
+volumes:
+  mediaflow-db-data:
+    name: mediaflow-db-data
+  keycloak-data:
+    name: keycloak-data
+  pgadmin-data:
+    name: pgadmin-data

@@ -1,0 +1,5 @@
+#Run all containers
+docker compose up
+
+#Run only keycloak container
+docker compose -p mediaflow-backend-local -f docker-compose-local-keycloak.yml up -d
